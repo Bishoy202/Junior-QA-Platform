@@ -142,6 +142,34 @@ def test_live_search_can_run_selected_source_without_keyword(tmp_path, monkeypat
     assert captured == {"query": None, "location": "Cairo", "source": "usajobs", "work_mode": None}
 
 
+def test_live_search_forwards_all_filters(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "all_filters_search_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+
+    import app.main as main_module
+    importlib.reload(main_module)
+    captured = {}
+
+    def fake_pipeline(path, query=None, location=None, source=None, work_mode=None):
+        captured.update(query=query, location=location, source=source, work_mode=work_mode)
+        return {"results": {}, "total_inserted": 0}
+
+    monkeypatch.setattr(main_module, "run_pipeline", fake_pipeline)
+
+    from fastapi.testclient import TestClient
+    response = TestClient(main_module.app).post(
+        "/api/search?q=qa&location=Cairo&source=wuzzuf&work_mode=hybrid"
+    )
+
+    assert response.status_code == 200
+    assert captured == {
+        "query": "qa",
+        "location": "Cairo",
+        "source": "wuzzuf",
+        "work_mode": "hybrid",
+    }
+
+
 def test_live_search_corrects_common_job_and_location_typos(tmp_path, monkeypatch):
     db_path = str(tmp_path / "search_correction_test.db")
     monkeypatch.setenv("DB_PATH", db_path)

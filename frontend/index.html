@@ -737,7 +737,7 @@
         $("status").textContent = text;
         $("status").style.color = error ? "#b44235" : "";
       };
-      function showTab(tab, updateHistory = true) {
+      function showTab(tab, updateHistory = true, loadContent = true) {
         ["dashboard", "jobs", "applications", "applied"].forEach(
           (id) => ($(id).hidden = id !== tab),
         );
@@ -752,10 +752,12 @@
             history.pushState({ tab }, "", `#${tab}`);
           }
         }
-        if (tab === "dashboard") loadDashboard();
-        if (tab === "jobs") loadJobs();
-        if (tab === "applications") loadApplications();
-        if (tab === "applied") loadAppliedDashboard();
+        if (loadContent) {
+          if (tab === "dashboard") loadDashboard();
+          if (tab === "jobs") loadJobs();
+          if (tab === "applications") loadApplications();
+          if (tab === "applied") loadAppliedDashboard();
+        }
       }
       const initialTab = [
         "dashboard",
@@ -774,20 +776,18 @@
           (button) => (button.onclick = () => showTab(button.dataset.tab)),
         );
       $("search").onclick = () => {
-        showTab("jobs");
-        searchLive();
-      };
-      $("sourceFilter").onchange = () => {
-        if (!$("jobs").hidden) loadJobs();
-      };
-      $("workModeFilter").onchange = () => {
-        if (!$("jobs").hidden) loadJobs();
+        $("jobs").innerHTML = "";
+        $("search").disabled = true;
+        showTab("jobs", true, false);
+        searchLive().finally(() => {
+          $("search").disabled = false;
+        });
       };
       [$("query"), $("location")].forEach(
         (input) =>
           (input.onkeydown = (event) => {
             if (event.key === "Enter") {
-              showTab("jobs");
+              showTab("jobs", true, false);
               searchLive();
             }
           }),
@@ -845,8 +845,9 @@
           $("query").value = result.query || query;
           $("location").value = result.location || location;
           const sourceLabel = $("sourceFilter").value || "all APIs";
+          const modeLabel = $("workModeFilter").value || "all work modes";
           message(
-            `Searched ${sourceLabel}${result.location ? ` in ${result.location}` : ""}. Found ${result.results ? Object.values(result.results).filter((item) => item.status === "ok").length : 0} source responses.`,
+            `Searched ${sourceLabel} · ${modeLabel}${result.location ? ` in ${result.location}` : ""}. Found ${result.results ? Object.values(result.results).filter((item) => item.status === "ok").length : 0} source responses.`,
           );
           rememberKeyword(result.query || query);
           rememberLocation(result.location || location);
