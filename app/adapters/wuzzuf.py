@@ -8,6 +8,7 @@ don't regress behavior that was already verified.
 from __future__ import annotations
 
 from . import wuzzuf_collector
+from ..locations import location_matches
 
 
 class WuzzufError(RuntimeError):
@@ -33,9 +34,8 @@ def fetch_jobs(query: str | None = None, location: str | None = None) -> list[di
                 str(job.get(field) or "")
                 for field in ("title", "company", "description", "category", "job_requirements")
             ).lower()
-            location_value = str(job.get("area") or "").lower()
             return all(term in searchable for term in query_terms) and (
-                not wanted_location or wanted_location in location_value
+                location_matches(job.get("area"), wanted_location)
             )
 
         return [job for job in jobs if matches(job)]
