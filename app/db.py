@@ -9,7 +9,13 @@ tables (applications, pipeline_runs) support the API surface.
 from __future__ import annotations
 
 import sqlite3
+import logging
+import os
+import re
 from pathlib import Path
+from urllib.parse import unquote, urlparse
+
+LOGGER = logging.getLogger(__name__)
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jobs (
@@ -65,6 +71,33 @@ CREATE TABLE IF NOT EXISTS cv_profiles (
 """
 
 
+def resolve_db_path() -> str:
+    """Resolve a SQLite file from DATABASE_URL, DB_PATH, or DATA_DIR.
+
+    The current data layer is SQLite-specific. Non-SQLite DATABASE_URL values
+    fail early with a clear message instead of silently using local SQLite.
+    """
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        parsed = urlparse(database_url)
+        if parsed.scheme in {"sqlite", "sqlite3"}:
+            path = unquote(parsed.path)
+            if re.match(r"^/[A-Za-z]:[\\/]", path):
+                path = path[1:]
+            if parsed.netloc and parsed.netloc not in {"", "localhost"}:
+                path = f"//{parsed.netloc}{path}"
+            return str(Path(path).resolve())
+        raise RuntimeError(
+            "DATABASE_URL is configured for a non-SQLite database, but this "
+            "app currently supports SQLite only. Use a Railway Volume with "
+            "DATA_DIR/DB_PATH, or add a MySQL-compatible database layer first."
+        )
+    if os.getenv("DB_PATH"):
+        return str(Path(os.environ["DB_PATH"]).expanduser().resolve())
+    data_dir = Path(os.getenv("DATA_DIR", str(Path(__file__).resolve().parent.parent / "data"))).expanduser()
+    return str((data_dir / "jobs.db").resolve())
+
+
 def get_connection(db_path: str) -> sqlite3.Connection:
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
@@ -80,5 +113,14 @@ def init_db(db_path: str) -> None:
         conn.execute("DROP TABLE IF EXISTS search_history")
         conn.executescript(SCHEMA_SQL)
         conn.commit()
+    finally:
+        conn.close()
+
+
+def log_db_status(db_path: str) -> None:
+    conn = get_connection(db_path)
+    try:
+        jobs = conn.execute("SELECT COUNT(*) AS count FROM jobs").fetchone()["count"]
+        LOGGER.info("database target=%s backend=sqlite jobs=%s", db_path, jobs)
     finally:
         conn.close()

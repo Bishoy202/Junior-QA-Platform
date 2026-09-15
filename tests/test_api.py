@@ -29,6 +29,74 @@ def test_health_and_sources(tmp_path, monkeypatch):
     assert r.json()["jobs"] == []  # empty DB, no fabricated rows
 
 
+def test_jobs_can_be_filtered_by_source(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "source_filter_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+
+    import app.main as main_module
+    importlib.reload(main_module)
+
+    conn = main_module.get_connection(db_path)
+    for source, external_id in (("wuzzuf", "w1"), ("adzuna", "a1")):
+        conn.execute(
+            "INSERT INTO jobs (source, external_id, url, title, company, description, collected_at, fit_score, fit_reasons, extra_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (source, external_id, f"https://example.com/{external_id}", "QA role", "Company", "Testing", "2024-01-01T00:00:00Z", 0.5, "[]", "{}"),
+        )
+    conn.commit()
+    conn.close()
+
+    from fastapi.testclient import TestClient
+    client = TestClient(main_module.app)
+    response = client.get("/api/jobs?source=adzuna")
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert response.json()["jobs"][0]["source"] == "adzuna"
+
+
+def test_jobs_can_be_filtered_by_work_mode(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "work_mode_filter_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+
+    import app.main as main_module
+    importlib.reload(main_module)
+    conn = main_module.get_connection(db_path)
+    for external_id, description in (("remote", "Fully remote QA role"), ("office", "On-site QA role")):
+        conn.execute(
+            "INSERT INTO jobs (source, external_id, url, title, company, description, collected_at, fit_score, fit_reasons, extra_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            ("wuzzuf", external_id, f"https://example.com/{external_id}", "QA role", "Company", description, "2024-01-01T00:00:00Z", 0.5, "[]", "{}"),
+        )
+    conn.commit()
+    conn.close()
+
+    from fastapi.testclient import TestClient
+    client = TestClient(main_module.app)
+    response = client.get("/api/jobs?work_mode=remote")
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert response.json()["jobs"][0]["external_id"] == "remote"
+
+
+def test_jobs_include_detected_work_mode(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "work_mode_label_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+
+    import app.main as main_module
+    importlib.reload(main_module)
+    conn = main_module.get_connection(db_path)
+    conn.execute(
+        "INSERT INTO jobs (source, external_id, url, title, company, description, collected_at, fit_score, fit_reasons, extra_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        ("wuzzuf", "hybrid", "https://example.com/hybrid", "QA Engineer", "Company", "Hybrid role", "2024-01-01T00:00:00Z", 0.5, "[]", "{}"),
+    )
+    conn.commit()
+    conn.close()
+
+    from fastapi.testclient import TestClient
+    job = TestClient(main_module.app).get("/api/jobs").json()["jobs"][0]
+    assert job["work_mode"] == "hybrid"
+
+
 def test_live_search_passes_query_and_location(tmp_path, monkeypatch):
     db_path = str(tmp_path / "search_test.db")
     monkeypatch.setenv("DB_PATH", db_path)
@@ -37,8 +105,8 @@ def test_live_search_passes_query_and_location(tmp_path, monkeypatch):
     importlib.reload(main_module)
     captured = {}
 
-    def fake_pipeline(path, query=None, location=None):
-        captured.update(path=path, query=query, location=location)
+    def fake_pipeline(path, query=None, location=None, source=None, work_mode=None):
+        captured.update(path=path, query=query, location=location, source=source, work_mode=work_mode)
         return {"results": {}, "total_inserted": 0}
 
     monkeypatch.setattr(main_module, "run_pipeline", fake_pipeline)
@@ -52,6 +120,28 @@ def test_live_search_passes_query_and_location(tmp_path, monkeypatch):
     assert captured["location"] == "Cairo"
 
 
+def test_live_search_can_run_selected_source_without_keyword(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "source_search_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+
+    import app.main as main_module
+    importlib.reload(main_module)
+    captured = {}
+
+    def fake_pipeline(path, query=None, location=None, source=None, work_mode=None):
+        captured.update(query=query, location=location, source=source, work_mode=work_mode)
+        return {"results": {source: {"status": "ok"}}, "total_inserted": 0}
+
+    monkeypatch.setattr(main_module, "run_pipeline", fake_pipeline)
+
+    from fastapi.testclient import TestClient
+    client = TestClient(main_module.app)
+    response = client.post("/api/search?location=Cairo&source=usajobs")
+
+    assert response.status_code == 200
+    assert captured == {"query": None, "location": "Cairo", "source": "usajobs", "work_mode": None}
+
+
 def test_live_search_corrects_common_job_and_location_typos(tmp_path, monkeypatch):
     db_path = str(tmp_path / "search_correction_test.db")
     monkeypatch.setenv("DB_PATH", db_path)
@@ -60,8 +150,8 @@ def test_live_search_corrects_common_job_and_location_typos(tmp_path, monkeypatc
     importlib.reload(main_module)
     captured = {}
 
-    def fake_pipeline(path, query=None, location=None):
-        captured.update(query=query, location=location)
+    def fake_pipeline(path, query=None, location=None, source=None, work_mode=None):
+        captured.update(query=query, location=location, source=source, work_mode=work_mode)
         return {"results": {}, "total_inserted": 0}
 
     monkeypatch.setattr(main_module, "run_pipeline", fake_pipeline)
@@ -73,7 +163,7 @@ def test_live_search_corrects_common_job_and_location_typos(tmp_path, monkeypatc
     assert response.status_code == 200
     assert response.json()["query"] == "python developer"
     assert response.json()["location"] == "cairo"
-    assert captured == {"query": "python developer", "location": "cairo"}
+    assert captured == {"query": "python developer", "location": "cairo", "source": None, "work_mode": None}
 
 
 def test_cv_upload_personalizes_job_score(tmp_path, monkeypatch):

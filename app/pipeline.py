@@ -27,6 +27,7 @@ from .adapters import (
 )
 from .scoring import score_and_annotate
 from .db import get_connection
+from .work_mode import matches_work_mode
 
 SOURCES = {
     "wuzzuf": wuzzuf.fetch_jobs,
@@ -52,6 +53,8 @@ def run_pipeline(
     query: str | None = None,
     location: str | None = None,
     clear_existing: bool = False,
+    source: str | None = None,
+    work_mode: str | None = None,
 ) -> dict:
     started_at = datetime.now(timezone.utc).isoformat()
     results: dict[str, dict] = {}
@@ -61,12 +64,15 @@ def run_pipeline(
 
     try:
         cleared = _clear_untracked_jobs(conn) if clear_existing else 0
-        for name, fetch_fn in SOURCES.items():
+        selected_sources = {source: SOURCES[source]} if source else SOURCES
+        for name, fetch_fn in selected_sources.items():
             try:
                 if query is None and location is None:
                     raw_jobs = fetch_fn()
                 else:
                     raw_jobs = fetch_fn(query=query, location=location)
+                if work_mode:
+                    raw_jobs = [job for job in raw_jobs if matches_work_mode(job, work_mode)]
                 all_jobs.extend(raw_jobs)
                 inserted = _insert_jobs(conn, raw_jobs)
                 results[name] = {"status": "ok", "fetched": len(raw_jobs), "inserted": inserted}

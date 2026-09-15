@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import json
 import io
+import logging
 import zipfile
 from xml.etree import ElementTree
 from datetime import datetime, timezone
@@ -21,14 +22,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .db import init_db, get_connection
+from .db import init_db, get_connection, log_db_status, resolve_db_path
 from .pipeline import run_pipeline, SOURCES, DISABLED_SOURCES
 from .scoring import score_job_against_cv
 from .search import JOB_TERMS, LOCATION_TERMS, correct_search_text
 from .locations import job_matches_location
+from .work_mode import classify_work_mode, matches_work_mode
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "data" / "jobs.db"))
+LOGGER = logging.getLogger(__name__)
+DB_PATH = resolve_db_path()
 FRONTEND_DIR = BASE_DIR / "frontend"
 
 app = FastAPI(title="Junior QA Job Platform")
@@ -46,6 +49,7 @@ app.add_middleware(
 )
 
 init_db(DB_PATH)
+log_db_status(DB_PATH)
 
 
 @app.get("/api/health")
@@ -66,12 +70,15 @@ def list_jobs(
     source: str | None = None,
     q: str | None = None,
     location: str | None = None,
+    work_mode: str | None = Query(None, alias="work_mode"),
     min_fit: float = 0.0,
     limit: int = Query(50, le=200),
     offset: int = 0,
 ):
     conn = get_connection(DB_PATH)
     try:
+        if work_mode not in {None, "all", "remote", "hybrid", "office"}:
+            raise HTTPException(status_code=400, detail="invalid work mode")
         q = correct_search_text(q, JOB_TERMS)
         location = correct_search_text(location, LOCATION_TERMS)
         where = ["fit_score >= ?"]
@@ -85,17 +92,21 @@ def list_jobs(
             params.extend([search] * 4)
         query = (
             f"SELECT * FROM jobs WHERE {' AND '.join(where)} "
-            f"ORDER BY fit_score DESC, posted_at DESC LIMIT ? OFFSET ?"
+            f"ORDER BY fit_score DESC, posted_at DESC"
         )
-        params += [limit, offset]
         rows = conn.execute(query, params).fetchall()
         cv = conn.execute("SELECT cv_text FROM cv_profiles WHERE id = 1").fetchone()
         jobs = [dict(row) for row in rows]
         if location:
             jobs = [job for job in jobs if job_matches_location(job, location)]
+        if work_mode:
+            jobs = [job for job in jobs if matches_work_mode(job, work_mode)]
+        for job in jobs:
+            job["work_mode"] = classify_work_mode(job)
         if cv:
             jobs = [score_job_against_cv(job, cv["cv_text"]) for job in jobs]
             jobs.sort(key=lambda job: job["fit_score"], reverse=True)
+        jobs = jobs[offset : offset + limit]
         return {"jobs": jobs, "count": len(jobs), "cv_loaded": bool(cv)}
     finally:
         conn.close()
@@ -143,7 +154,7 @@ def dashboard():
 
 @app.post("/api/pipeline/run")
 def trigger_pipeline():
-    result = run_pipeline(DB_PATH, clear_existing=True)
+    result = run_pipeline(DB_PATH, clear_existing=False)
     return result
 
 
@@ -206,15 +217,25 @@ async def upload_cv(file: UploadFile = File(...)):
 
 @app.post("/api/search")
 def search_jobs(
-    q: str = Query(..., min_length=2, max_length=120),
+    q: str | None = Query(None, max_length=120),
     location: str | None = Query(None, max_length=120),
+    source: str | None = Query(None),
+    work_mode: str | None = Query(None, alias="work_mode"),
 ):
     """Fetch fresh results from every configured source for this search."""
     query = correct_search_text(q, JOB_TERMS)
     normalized_location = correct_search_text(location, LOCATION_TERMS)
-    if not query:
-        raise HTTPException(status_code=422, detail="search query is required")
-    result = run_pipeline(DB_PATH, query=query, location=normalized_location)
+    if source and source not in SOURCES:
+        raise HTTPException(status_code=400, detail="unknown job source")
+    if work_mode not in {None, "all", "remote", "hybrid", "office"}:
+        raise HTTPException(status_code=400, detail="invalid work mode")
+    result = run_pipeline(
+        DB_PATH,
+        query=query,
+        location=normalized_location,
+        source=source,
+        work_mode=work_mode,
+    )
     return {"query": query, "location": normalized_location, **result}
 
 

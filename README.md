@@ -60,6 +60,18 @@ uvicorn app.main:app --reload
 
 Open http://127.0.0.1:8000/
 
+## Railway persistence and ingestion
+
+The current database layer is SQLite. It resolves storage in this order:
+
+1. `DATABASE_URL` when it is a SQLite URL such as `sqlite:////data/jobs.db`
+2. `DB_PATH` when set
+3. `DATA_DIR/jobs.db`, with `DATA_DIR` defaulting to the repository's `data/` directory
+
+At startup the app logs the resolved database target, backend, and current jobs row count. A non-SQLite `DATABASE_URL` fails fast rather than silently falling back to ephemeral SQLite; MySQL support requires a separate compatible database layer.
+
+`POST /api/pipeline/run` is repeat-safe: it uses `INSERT OR IGNORE` deduplication and does not clear existing jobs. It is suitable for a Railway Cron Job that calls the endpoint periodically.
+
 ## Test it
 
 ```bash
