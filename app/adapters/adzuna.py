@@ -47,7 +47,7 @@ def fetch_jobs(query: str | None = None, location: str | None = None) -> list[di
         )
 
     query = query or os.getenv(
-        "JOB_QUERY", "junior QA tester quality assurance software testing"
+        "JOB_QUERY", "junior jobs entry level remote"
     )
     location = location or os.getenv("ADZUNA_LOCATION", "")
 

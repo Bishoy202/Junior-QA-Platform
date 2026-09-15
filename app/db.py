@@ -55,6 +55,13 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
     finished_at TEXT,
     results_json TEXT NOT NULL DEFAULT '{}'
 );
+
+CREATE TABLE IF NOT EXISTS cv_profiles (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    filename TEXT NOT NULL,
+    cv_text TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
 """
 
 
@@ -69,6 +76,8 @@ def get_connection(db_path: str) -> sqlite3.Connection:
 def init_db(db_path: str) -> None:
     conn = get_connection(db_path)
     try:
+        # Search history is intentionally local to the browser now.
+        conn.execute("DROP TABLE IF EXISTS search_history")
         conn.executescript(SCHEMA_SQL)
         conn.commit()
     finally:

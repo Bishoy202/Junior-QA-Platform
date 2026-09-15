@@ -17,6 +17,14 @@ def test_senior_qa_penalized():
     assert any("senior" in r for r in reasons)
 
 
+def test_general_junior_role_scores_high():
+    score, reasons = score_job(
+        "Junior Frontend Developer", "build interfaces, 0-2 years experience", "Entry Level", "0-2 years"
+    )
+    assert score >= 0.7
+    assert any("junior" in r for r in reasons)
+
+
 def test_non_qa_scores_low():
     score, reasons = score_job("Marketing Specialist", "no testing involved", "Mid Level", None)
     assert score < 0.3

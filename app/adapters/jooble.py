@@ -25,7 +25,7 @@ def fetch_jobs(query: str | None = None, location: str | None = None) -> list[di
     # Default to Egypt's regional endpoint so an Egypt-focused user cannot silently query the US pool.
     endpoint = os.getenv("JOOBLE_ENDPOINT", "https://eg.jooble.org/api")
     query = query or os.getenv(
-        "JOB_QUERY", "junior QA tester quality assurance software testing"
+        "JOB_QUERY", "junior jobs entry level"
     )
     location = location or os.getenv("JOOBLE_LOCATION", "Egypt")
 

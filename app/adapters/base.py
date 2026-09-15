@@ -40,6 +40,7 @@ def normalize(
     area: Optional[str] = None,
     posted_at: Optional[str] = None,
     company_url: Optional[str] = None,
+    company_logo: Optional[str] = None,
     category: Optional[str] = None,
     extra: Optional[dict] = None,
 ) -> dict:
@@ -53,7 +54,7 @@ def normalize(
         "title": title or "Untitled",
         "company": company or "Unknown",
         "company_url": company_url,
-        "company_logo": None,
+        "company_logo": company_logo,
         "description": description or "",
         "salary": salary,
         "experience": None,

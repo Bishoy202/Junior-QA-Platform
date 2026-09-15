@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout | Unified job search</title>
+    <title>Job search</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <style>
       :root {
         --ink: #17211b;
@@ -30,6 +31,7 @@
         font: inherit;
       }
       button {
+              list="searchLocations"
         cursor: pointer;
       }
       .shell {
@@ -69,6 +71,9 @@
           12px Arial,
           sans-serif;
         margin-top: 2px;
+      }
+      .brand strong {
+        font-size: 22px;
       }
       nav {
         display: flex;
@@ -151,6 +156,36 @@
           700 13px Arial,
           sans-serif;
       }
+      .cv-panel {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        font:
+          12px Arial,
+          sans-serif;
+      }
+      .cv-panel label {
+        color: var(--muted);
+      }
+      .cv-panel input {
+        max-width: 220px;
+        margin-left: 8px;
+      }
+      .cv-panel button {
+        border: 1px solid var(--green);
+        background: var(--green);
+        color: #fff;
+        padding: 8px 11px;
+        font-weight: 700;
+      }
+      #cvStatus {
+        color: var(--muted);
+      }
       .toolbar {
         display: flex;
         align-items: center;
@@ -186,6 +221,76 @@
           sans-serif;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+      }
+      .analysis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0 28px;
+      }
+      .analysis-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 20px;
+      }
+      .analysis-card h3 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        font-weight: 400;
+      }
+      .analysis-card ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+      .analysis-card li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font:
+          14px Arial,
+          sans-serif;
+      }
+      .analysis-card strong {
+        color: var(--ink);
+      }
+      .analysis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0 28px;
+      }
+      .analysis-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 20px;
+      }
+      .analysis-card h3 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        font-weight: 400;
+      }
+      .analysis-card ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+      .analysis-card li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font:
+          14px Arial,
+          sans-serif;
+      }
+      .analysis-card strong {
+        color: var(--ink);
       }
       .jobs {
         display: grid;
@@ -295,6 +400,113 @@
         justify-content: space-between;
         gap: 12px;
       }
+      .application-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .unsave {
+        border: 1px solid #b44235;
+        color: #b44235;
+        background: transparent;
+        padding: 8px 11px;
+        font:
+          700 11px Arial,
+          sans-serif;
+      }
+      .application-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: end;
+        margin: 24px 0 18px;
+      }
+      .application-filters label {
+        display: grid;
+        gap: 5px;
+        color: var(--muted);
+        font:
+          11px Arial,
+          sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .application-filters input {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--ink);
+        padding: 9px;
+      }
+      .application-filters button {
+        border: 1px solid var(--green);
+        background: var(--green);
+        color: white;
+        padding: 10px 13px;
+        font:
+          700 11px Arial,
+          sans-serif;
+      }
+      .chart-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 20px;
+        margin-bottom: 18px;
+      }
+      .chart-panel h3 {
+        margin: 0 0 14px;
+        font-size: 20px;
+        font-weight: 400;
+      }
+      #applicationsChart {
+        display: block;
+        width: 100%;
+        height: 230px;
+      }
+      .application-date {
+        margin-top: 7px;
+        color: var(--muted);
+        font:
+          12px Arial,
+          sans-serif;
+      }
+      .applied-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .applied-kpi {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 16px;
+      }
+      .applied-kpi strong {
+        display: block;
+        font-size: 28px;
+        font-weight: 400;
+      }
+      .applied-kpi span {
+        color: var(--muted);
+        font: 11px Arial, sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .applied-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); }
+      .applied-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+      .applied-table th, .applied-table td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; font: 13px Arial, sans-serif; }
+      .applied-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+      .status-badge { display: inline-block; padding: 5px 8px; font: 700 11px Arial, sans-serif; }
+      .status-applied { color: #1e6b4f; background: #dcefe4; }
+      .status-interviewing { color: #855d00; background: #fff0c2; }
+      .status-rejected { color: #9b3028; background: #f8d8d4; }
+      .status-offer { color: #174b8f; background: #dbe8fa; }
+      .table-action { border: 0; background: none; color: var(--green); padding: 4px; font: 700 11px Arial, sans-serif; }
       @media (max-width: 720px) {
         header {
           align-items: flex-start;
@@ -321,6 +533,7 @@
           align-items: flex-start;
           flex-direction: column;
         }
+        .applied-kpis, .applied-grid { grid-template-columns: 1fr 1fr; }
       }
     </style>
   </head>
@@ -328,15 +541,16 @@
     <div class="shell">
       <header>
         <div class="brand">
-          <div class="mark">S</div>
+          <div class="mark">J</div>
           <div>
-            <strong>Scout</strong><small>one search, every source</small>
+            <strong>Job search</strong><small>one search, every source</small>
           </div>
         </div>
         <nav>
           <button data-tab="dashboard" class="active">Overview</button
           ><button data-tab="jobs">Job board</button
-          ><button data-tab="applications">Saved</button>
+          ><button data-tab="applications">Saved</button
+          ><button data-tab="applied">Applied</button>
         </nav>
         <button class="primary" id="runPipeline">Refresh sources</button>
       </header>
@@ -345,30 +559,130 @@
           <div class="eyebrow">Your next move</div>
           <h1>Find the work<br />worth your time.</h1>
           <p>
-            Search one clean feed of roles from Wuzzuf, Adzuna, and Jooble.
-            Scout scores each listing so the strongest matches rise to the top.
+            Search one clean feed of roles from Wuzzuf, Adzuna, Jooble, USAJOBS,
+            and Remotive. Job search scores each listing so the strongest
+            matches rise to the top.
           </p>
           <div class="searchbar">
             <input
               id="query"
               placeholder="Role, skill, or company"
               aria-label="Search jobs"
+              list="searchKeywords"
             /><input
               id="location"
               placeholder="Location"
               aria-label="Filter by location"
+              list="searchLocations"
             /><button id="search">Search jobs</button>
           </div>
+          <div class="cv-panel">
+            <label for="cvFile">Rate jobs with your CV</label>
+            <input id="cvFile" type="file" accept=".txt,.md,.docx,.pdf" />
+            <button id="uploadCv" type="button">Upload CV</button>
+            <span id="cvStatus"></span>
+          </div>
           <div class="source-row" id="sources"></div>
+          <datalist id="searchKeywords"></datalist>
+          <datalist id="searchLocations"></datalist>
         </section>
         <section id="dashboard"></section>
         <section id="jobs" hidden></section>
         <section id="applications" hidden></section>
+        <section id="applied" hidden></section>
         <div id="status"></div>
       </main>
     </div>
     <script>
       const $ = (id) => document.getElementById(id);
+      // Standalone template fallback. Replace this array with:
+      // fetch('/api/v1/jobs/applied').then(response => response.json())
+      // when using the production FastAPI applied-jobs endpoint.
+      const APPLIED_JOBS_MOCK = [
+        {
+          id: "mock-1",
+          job_id: 1,
+          title: "QA Automation Engineer",
+          company: "Northstar Labs",
+          applied_at: "2026-09-12T09:00:00Z",
+          updated_at: "2026-09-12T09:00:00Z",
+          status: "applied",
+          url: "#",
+        },
+        {
+          id: "mock-2",
+          job_id: 2,
+          title: "Software Test Engineer",
+          company: "Blue Orbit",
+          applied_at: "2026-09-09T09:00:00Z",
+          updated_at: "2026-09-10T09:00:00Z",
+          status: "interviewing",
+          url: "#",
+        },
+        {
+          id: "mock-3",
+          job_id: 3,
+          title: "Junior QA Analyst",
+          company: "Cedar Systems",
+          applied_at: "2026-09-05T09:00:00Z",
+          updated_at: "2026-09-05T09:00:00Z",
+          status: "rejected",
+          url: "#",
+        },
+        {
+          id: "mock-4",
+          job_id: 4,
+          title: "Frontend Developer",
+          company: "Atlas Digital",
+          applied_at: "2026-08-29T09:00:00Z",
+          updated_at: "2026-09-02T09:00:00Z",
+          status: "offer",
+          url: "#",
+        },
+        {
+          id: "mock-5",
+          job_id: 5,
+          title: "Manual Tester",
+          company: "Harbor Tech",
+          applied_at: "2026-08-24T09:00:00Z",
+          updated_at: "2026-08-24T09:00:00Z",
+          status: "applied",
+          url: "#",
+        },
+        {
+          id: "mock-6",
+          job_id: 6,
+          title: "SDET",
+          company: "Pioneer Cloud",
+          applied_at: "2026-08-17T09:00:00Z",
+          updated_at: "2026-08-20T09:00:00Z",
+          status: "interviewing",
+          url: "#",
+        },
+        {
+          id: "mock-7",
+          job_id: 7,
+          title: "QA Engineer",
+          company: "Riverstone",
+          applied_at: "2026-08-08T09:00:00Z",
+          updated_at: "2026-08-08T09:00:00Z",
+          status: "rejected",
+          url: "#",
+        },
+        {
+          id: "mock-8",
+          job_id: 8,
+          title: "Test Analyst",
+          company: "Mosaic Works",
+          applied_at: "2026-08-01T09:00:00Z",
+          updated_at: "2026-08-01T09:00:00Z",
+          status: "applied",
+          url: "#",
+        },
+      ];
+      let appliedRows = [];
+      let statusChart;
+      let historyChart;
       const api = async (path, options) => {
         const response = await fetch(path, options);
         const body = await response.json();
@@ -379,8 +693,8 @@
         $("status").textContent = text;
         $("status").style.color = error ? "#b44235" : "";
       };
-      function showTab(tab) {
-        ["dashboard", "jobs", "applications"].forEach(
+      function showTab(tab, updateHistory = true) {
+        ["dashboard", "jobs", "applications", "applied"].forEach(
           (id) => ($(id).hidden = id !== tab),
         );
         document
@@ -388,10 +702,28 @@
           .forEach((button) =>
             button.classList.toggle("active", button.dataset.tab === tab),
           );
+        if (updateHistory) {
+          const currentTab = history.state?.tab;
+          if (currentTab !== tab) {
+            history.pushState({ tab }, "", `#${tab}`);
+          }
+        }
         if (tab === "dashboard") loadDashboard();
         if (tab === "jobs") loadJobs();
         if (tab === "applications") loadApplications();
+        if (tab === "applied") loadAppliedDashboard();
       }
+      const initialTab = [
+        "dashboard",
+        "jobs",
+        "applications",
+        "applied",
+      ].includes(location.hash.slice(1))
+        ? location.hash.slice(1)
+        : "dashboard";
+      history.replaceState({ tab: initialTab }, "", `#${initialTab}`);
+      window.onpopstate = (event) =>
+        showTab(event.state?.tab || "dashboard", false);
       document
         .querySelectorAll("nav button")
         .forEach(
@@ -411,13 +743,40 @@
           }),
       );
       $("runPipeline").onclick = async () => {
+        $("jobs").innerHTML = "";
+        $("runPipeline").disabled = true;
         message("Refreshing job sources...");
         try {
           const result = await api("/api/pipeline/run", { method: "POST" });
-          message(`Updated ${result.total_inserted} new listings.`);
+          message(
+            `Cleared ${result.total_cleared ?? 0} old listings and loaded ${result.total_inserted} new listings.`,
+          );
           loadDashboard();
         } catch (error) {
           message(error.message, true);
+        } finally {
+          $("runPipeline").disabled = false;
+        }
+      };
+      $("uploadCv").onclick = async () => {
+        const file = $("cvFile").files[0];
+        if (!file) {
+          $("cvStatus").textContent = "Choose a CV first.";
+          return;
+        }
+        const form = new FormData();
+        form.append("file", file);
+        $("uploadCv").disabled = true;
+        $("cvStatus").textContent = "Reading CV...";
+        try {
+          const result = await api("/api/cv", { method: "POST", body: form });
+          $("cvStatus").textContent =
+            `${result.filename} loaded. Jobs are now CV-rated.`;
+          if (!$("jobs").hidden) await loadJobs();
+        } catch (error) {
+          $("cvStatus").textContent = error.message;
+        } finally {
+          $("uploadCv").disabled = false;
         }
       };
       async function searchLive() {
@@ -432,14 +791,57 @@
           const params = new URLSearchParams({ q: query });
           if (location) params.set("location", location);
           const result = await api("/api/search?" + params, { method: "POST" });
+          $("query").value = result.query || query;
+          $("location").value = result.location || location;
           message(
-            `Found ${result.results ? Object.values(result.results).filter((item) => item.status === "ok").length : 0} source responses. Showing fresh matches.`,
+            `Searching for "${result.query || query}"${result.location ? ` in ${result.location}` : ""}. Found ${result.results ? Object.values(result.results).filter((item) => item.status === "ok").length : 0} source responses.`,
           );
+          rememberKeyword(result.query || query);
+          rememberLocation(result.location || location);
           await loadJobs();
         } catch (error) {
           message(error.message, true);
           await loadJobs();
         }
+      }
+      function loadSavedKeywords() {
+        return loadSavedValues("job-search-keywords");
+      }
+      function loadSavedLocations() {
+        return loadSavedValues("job-search-locations");
+      }
+      function loadSavedValues(storageKey) {
+        try {
+          return JSON.parse(localStorage.getItem(storageKey) || "[]");
+        } catch (error) {
+          return [];
+        }
+      }
+      function renderSavedKeywords() {
+        renderSavedValues(loadSavedKeywords(), "searchKeywords");
+      }
+      function renderSavedLocations() {
+        renderSavedValues(loadSavedLocations(), "searchLocations");
+      }
+      function renderSavedValues(values, elementId) {
+        $(elementId).innerHTML = values
+          .map((keyword) => `<option value="${escapeHtml(keyword)}"></option>`)
+          .join("");
+      }
+      function rememberKeyword(query) {
+        rememberValue(query, "job-search-keywords", renderSavedKeywords);
+      }
+      function rememberLocation(location) {
+        rememberValue(location, "job-search-locations", renderSavedLocations);
+      }
+      function rememberValue(value, storageKey, render) {
+        const values = loadSavedValues(storageKey);
+        if (value) {
+          values.unshift(value);
+          const uniqueValues = [...new Set(values)].slice(0, 8);
+          localStorage.setItem(storageKey, JSON.stringify(uniqueValues));
+        }
+        render();
       }
       function escapeHtml(value) {
         return String(value || "").replace(
@@ -456,7 +858,39 @@
       }
       function jobCard(job, savedIds) {
         const saved = savedIds.has(job.id);
-        return `<article class="job"><div class="job-top"><div><h3>${escapeHtml(job.title)}</h3><div class="meta">${escapeHtml(job.company)} · ${escapeHtml(job.area || "Location not listed")} · ${escapeHtml(job.source)}</div></div><span class="fit">${Math.round(job.fit_score * 100)}% fit</span></div><div class="job-foot"><a href="${escapeHtml(job.url)}" target="_blank" rel="noopener">View listing ↗</a><button class="save ${saved ? "saved" : ""}" data-job-id="${job.id}">${saved ? "Saved" : "Save role"}</button></div></article>`;
+        const fitLabel =
+          job.cv_match_score != null
+            ? `${Math.round(job.fit_score * 100)}% CV fit`
+            : `${Math.round(job.fit_score * 100)}% fit`;
+        return `<article class="job"><div class="job-top"><div><h3>${escapeHtml(job.title)}</h3><div class="meta">${escapeHtml(job.company)} · ${escapeHtml(job.area || "Location not listed")} · ${escapeHtml(job.source)}</div></div><span class="fit">${fitLabel}</span></div><div class="job-foot"><a class="job-link" data-job-id="${job.id}" href="${escapeHtml(job.url)}" target="_blank" rel="noopener">View listing ↗</a><button class="save ${saved ? "saved" : ""}" data-job-id="${job.id}">${saved ? "Saved" : "Save role"}</button></div></article>`;
+      }
+      function bindJobActions() {
+        document
+          .querySelectorAll(".save[data-job-id]")
+          .forEach((button) => (button.onclick = () => saveJob(button)));
+        document.querySelectorAll(".job-link").forEach((link) => {
+          link.onclick = (event) => handleListingClick(event, link);
+        });
+      }
+      async function handleListingClick(event, link) {
+        event.preventDefault();
+        const applied = window.confirm(
+          "Did you apply for this job? Click OK to add it to Applied jobs, or Cancel to just open the listing.",
+        );
+        const listingWindow = window.open("about:blank", "_blank");
+        if (applied) {
+          try {
+            await api(
+              `/api/applications?job_id=${link.dataset.jobId}&status=applied`,
+              { method: "POST" },
+            );
+            message("Application recorded with today's date.");
+            await loadAppliedDashboard();
+          } catch (error) {
+            message(error.message, true);
+          }
+        }
+        if (listingWindow) listingWindow.location = link.href;
       }
       async function savedIds() {
         const data = await api("/api/applications");
@@ -474,9 +908,7 @@
           ]);
           $("jobs").innerHTML =
             `<div class="toolbar"><h2>Open roles <span class="meta">${data.count} found</span></h2></div><div class="jobs">${data.jobs.map((job) => jobCard(job, ids)).join("") || '<div class="empty">No roles match that search yet. Try a broader title or location.</div>'}</div>`;
-          document
-            .querySelectorAll(".save")
-            .forEach((button) => (button.onclick = () => saveJob(button)));
+          bindJobActions();
         } catch (error) {
           $("jobs").innerHTML =
             `<div class="error">${escapeHtml(error.message)}</div>`;
@@ -503,26 +935,313 @@
             api("/api/dashboard"),
             api("/api/sources"),
           ]);
+          const statusBreakdown = data.status_breakdown || {};
+          const appliedRate = data.application_rate ?? 0;
           $("dashboard").innerHTML =
-            `<div class="stats"><div class="stat"><b>${data.total_jobs}</b><span>Total listings</span></div><div class="stat"><b>${data.high_fit_jobs}</b><span>Strong matches</span></div><div class="stat"><b>${Object.keys(data.by_source).length}</b><span>Active sources</span></div><div class="stat"><b>${data.last_pipeline_run ? "Ready" : "—"}</b><span>Pipeline status</span></div></div><div class="toolbar"><h2>Fresh from the network</h2><button class="save" id="browse">Browse all roles</button></div>`;
+            `<div class="stats"><button class="stat" id="totalListingsStat" type="button" style="text-align:left; border:1px solid var(--line); background:var(--panel); cursor:pointer;"><b>${data.total_jobs}</b><span>Total listings</span></button><button class="stat" id="strongMatchesStat" type="button" style="text-align:left; border:1px solid var(--line); background:var(--panel); cursor:pointer;"><b>${data.high_fit_jobs}</b><span>Strong matches</span></button><button class="stat" id="appliedStat" type="button" style="text-align:left; border:1px solid var(--line); background:var(--panel); cursor:pointer;"><b>${data.applied_jobs ?? 0}</b><span>Applied</span></button><button class="stat" id="savedStat" type="button" style="text-align:left; border:1px solid var(--line); background:var(--panel); cursor:pointer;"><b>${data.saved_jobs ?? 0}</b><span>Saved jobs</span></button></div><div class="analysis"><div class="analysis-card"><h3>Applied jobs analysis</h3><ul><li><span>Applied total</span><strong>${data.applied_jobs ?? 0}</strong></li><li><span>Saved total</span><strong>${data.saved_jobs ?? 0}</strong></li><li><span>Application rate</span><strong>${appliedRate}%</strong></li><li><span>Tracked roles</span><strong>${data.total_applications ?? 0}</strong></li></ul></div><div class="analysis-card"><h3>Status breakdown</h3><ul><li><span>Applied</span><strong>${statusBreakdown.applied ?? 0}</strong></li><li><span>Saved</span><strong>${statusBreakdown.saved ?? 0}</strong></li><li><span>Total tracked</span><strong>${data.total_applications ?? 0}</strong></li><li><span>Coverage</span><strong>${data.total_jobs ? Math.min(100, Math.round(((data.total_applications ?? 0) / data.total_jobs) * 100)) : 0}%</strong></li></ul></div></div><div class="toolbar"><h2>Fresh from the network</h2><button class="save" id="browse">Browse all roles</button></div>`;
           $("sources").innerHTML = sourceData.enabled
             .map((source) => `<span class="source">● ${source}</span>`)
             .join("");
           $("browse").onclick = () => showTab("jobs");
+          $("totalListingsStat").onclick = async () => {
+            showTab("jobs");
+            $("query").value = "";
+            $("location").value = "";
+            try {
+              const response = await api("/api/jobs?limit=100");
+              const ids = await savedIds();
+              $("jobs").innerHTML =
+                `<div class="toolbar"><h2>All listings <span class="meta">${response.count} found</span></h2></div><div class="jobs">${response.jobs.map((job) => jobCard(job, ids)).join("") || '<div class="empty">No listings available right now.</div>'}</div>`;
+              bindJobActions();
+            } catch (error) {
+              $("jobs").innerHTML =
+                `<div class="error">${escapeHtml(error.message)}</div>`;
+            }
+          };
+          $("strongMatchesStat").onclick = async () => {
+            showTab("jobs");
+            $("query").value = "";
+            $("location").value = "";
+            try {
+              const response = await api("/api/jobs?min_fit=0.7&limit=100");
+              const ids = await savedIds();
+              $("jobs").innerHTML =
+                `<div class="toolbar"><h2>Strong matches <span class="meta">${response.count} found</span></h2></div><div class="jobs">${response.jobs.map((job) => jobCard(job, ids)).join("") || '<div class="empty">No strong matches right now.</div>'}</div>`;
+              bindJobActions();
+            } catch (error) {
+              $("jobs").innerHTML =
+                `<div class="error">${escapeHtml(error.message)}</div>`;
+            }
+          };
+          $("appliedStat").onclick = async () => {
+            showTab("applied");
+            await loadAppliedDashboard();
+          };
+          $("savedStat").onclick = async () => {
+            showTab("applications");
+            await loadApplications();
+          };
         } catch (error) {
           message(error.message, true);
         }
       }
       async function loadApplications() {
         try {
-          const data = await api("/api/applications");
+          const data = await api("/api/applications?status=saved");
           $("applications").innerHTML =
-            `<div class="toolbar"><h2>Your shortlist</h2></div>${data.applications.map((item) => `<div class="application"><div><h3>${escapeHtml(item.title)}</h3><div class="meta">${escapeHtml(item.company)} · ${escapeHtml(item.status)}</div></div><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Open ↗</a></div>`).join("") || '<div class="empty">Save a role from the job board and it will appear here.</div>'}`;
+            `<div class="toolbar"><h2>Your shortlist</h2></div>${data.applications.map((item) => `<div class="application"><div><h3>${escapeHtml(item.title)}</h3><div class="meta">${escapeHtml(item.company)} · ${escapeHtml(item.status)}</div></div><div class="application-actions"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Open ↗</a>${item.status === "saved" ? `<button class="unsave" type="button" data-application-id="${item.id}">Unsave</button>` : ""}</div></div>`).join("") || '<div class="empty">Save a role from the job board and it will appear here.</div>'}`;
+          document.querySelectorAll(".unsave").forEach((button) => {
+            button.onclick = () => unsaveJob(button);
+          });
         } catch (error) {
           message(error.message, true);
         }
       }
-      loadDashboard();
+      async function loadAppliedDashboard() {
+        try {
+          const fromDate = $("appliedFrom")?.value || "";
+          const toDate = $("appliedTo")?.value || "";
+          const params = new URLSearchParams();
+          if (fromDate) params.set("from_date", fromDate);
+          if (toDate) params.set("to_date", toDate);
+          const data = await api("/api/applications/analytics?" + params);
+          appliedRows = data.applications;
+        } catch (error) {
+          appliedRows = APPLIED_JOBS_MOCK;
+        }
+        renderAppliedDashboard();
+      }
+      function renderAppliedDashboard() {
+        const search = ($("appliedSearch")?.value || "").toLowerCase();
+        const status = $("appliedStatusFilter")?.value || "all";
+        const sort = $("appliedSort")?.value || "newest";
+        const fromDate = $("appliedFrom")?.value || "";
+        const toDate = $("appliedTo")?.value || "";
+        const filtered = appliedRows
+          .filter((item) =>
+            `${item.title} ${item.company}`.toLowerCase().includes(search),
+          )
+          .filter((item) => status === "all" || item.status === status)
+          .filter(
+            (item) => !fromDate || item.applied_at.slice(0, 10) >= fromDate,
+          )
+          .filter((item) => !toDate || item.applied_at.slice(0, 10) <= toDate)
+          .sort((a, b) =>
+            sort === "oldest"
+              ? a.applied_at.localeCompare(b.applied_at)
+              : b.applied_at.localeCompare(a.applied_at),
+          );
+        const counts = { applied: 0, interviewing: 0, rejected: 0, offer: 0 };
+        appliedRows.forEach((item) => {
+          if (counts[item.status] !== undefined) counts[item.status] += 1;
+        });
+        $("applied").innerHTML =
+          `<div class="toolbar"><h2>Applied jobs <span class="meta">${filtered.length} shown · ${appliedRows.length} total</span></h2></div><div class="applied-kpis"><div class="applied-kpi"><strong>${appliedRows.length}</strong><span>Total Applied</span></div><div class="applied-kpi"><strong>${counts.interviewing}</strong><span>Interviewing</span></div><div class="applied-kpi"><strong>${counts.rejected}</strong><span>Rejections</span></div><div class="applied-kpi"><strong>${counts.offer}</strong><span>Offers</span></div></div><div class="application-filters"><label>Search<input id="appliedSearch" type="search" placeholder="Job title or company" value="${escapeHtml(search)}"></label><label>Status<select id="appliedStatusFilter"><option value="all">All</option><option value="applied">Applied</option><option value="interviewing">Interviewing</option><option value="rejected">Rejected</option><option value="offer">Offer</option></select></label><label>From<input id="appliedFrom" type="date" value="${escapeHtml(fromDate)}"></label><label>To<input id="appliedTo" type="date" value="${escapeHtml(toDate)}"></label><label>Sort<select id="appliedSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label><button id="clearDateFilter" type="button">Clear</button></div><div class="applied-grid"><div class="chart-panel"><h3>Status distribution</h3><canvas id="statusChart"></canvas></div><div class="chart-panel"><h3>Application history</h3><canvas id="applicationsChart"></canvas></div></div><div class="table-wrap"><table class="applied-table"><thead><tr><th>Job title</th><th>Company</th><th>Date applied</th><th>Status</th><th>Actions</th></tr></thead><tbody>${filtered.map(appliedRowHtml).join("") || '<tr><td colspan="5">No applied jobs match these filters.</td></tr>'}</tbody></table></div>`;
+        $("appliedStatusFilter").value = status;
+        $("appliedSort").value = sort;
+        $("appliedSearch").oninput = renderAppliedDashboard;
+        $("appliedStatusFilter").onchange = renderAppliedDashboard;
+        $("appliedSort").onchange = renderAppliedDashboard;
+        $("appliedFrom").onchange = renderAppliedDashboard;
+        $("appliedTo").onchange = renderAppliedDashboard;
+        $("clearDateFilter").onclick = () => {
+          $("appliedSearch").value = "";
+          $("appliedStatusFilter").value = "all";
+          $("appliedFrom").value = "";
+          $("appliedTo").value = "";
+          renderAppliedDashboard();
+        };
+        document.querySelectorAll(".edit-application").forEach((button) => {
+          button.onclick = () => editApplication(button.dataset.id);
+        });
+        document.querySelectorAll(".delete-application").forEach((button) => {
+          button.onclick = () => deleteApplication(button.dataset.id);
+        });
+        drawStatusChart(counts);
+        drawHistoryChart(filtered);
+      }
+      function appliedRowHtml(item) {
+        const status = item.status || "applied";
+        return `<tr><td><strong>${escapeHtml(item.title)}</strong></td><td>${escapeHtml(item.company)}</td><td>${formatApplicationDate(item.applied_at)}</td><td><span class="status-badge status-${status}">${status[0].toUpperCase() + status.slice(1)}</span></td><td><button class="table-action edit-application" data-id="${item.id}">Edit</button><button class="table-action delete-application" data-id="${item.id}">Delete</button></td></tr>`;
+      }
+      function drawStatusChart(counts) {
+        if (statusChart) statusChart.destroy();
+        statusChart = new Chart($("statusChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["Applied", "Interviewing", "Rejected", "Offer"],
+            datasets: [
+              {
+                data: [
+                  counts.applied,
+                  counts.interviewing,
+                  counts.rejected,
+                  counts.offer,
+                ],
+                backgroundColor: ["#1e6b4f", "#e0aa27", "#b44235", "#3774bd"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: "bottom" } },
+          },
+        });
+      }
+      function drawHistoryChart(rows) {
+        if (historyChart) historyChart.destroy();
+        const history = {};
+        rows.forEach((item) => {
+          const day = item.applied_at.slice(0, 10);
+          history[day] = (history[day] || 0) + 1;
+        });
+        const labels = Object.keys(history).sort();
+        historyChart = new Chart($("applicationsChart"), {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Applications",
+                data: labels.map((label) => history[label]),
+                borderColor: "#e77b44",
+                backgroundColor: "#e77b4440",
+                fill: true,
+                tension: 0.25,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+      async function editApplication(id) {
+        const status = window.prompt(
+          "Status: applied, interviewing, rejected, or offer",
+          "applied",
+        );
+        if (
+          !status ||
+          !["applied", "interviewing", "rejected", "offer"].includes(
+            status.toLowerCase(),
+          )
+        )
+          return;
+        const item = appliedRows.find((row) => String(row.id) === String(id));
+        if (!item || String(item.id).startsWith("mock-")) {
+          item.status = status.toLowerCase();
+          renderAppliedDashboard();
+          return;
+        }
+        await api(
+          `/api/applications?job_id=${item.job_id}&status=${status.toLowerCase()}`,
+          { method: "POST" },
+        );
+        await loadAppliedDashboard();
+      }
+      async function deleteApplication(id) {
+        if (!window.confirm("Delete this application record?")) return;
+        if (String(id).startsWith("mock-")) {
+          appliedRows = appliedRows.filter(
+            (row) => String(row.id) !== String(id),
+          );
+          renderAppliedDashboard();
+          return;
+        }
+        await api(`/api/applications/${id}`, { method: "DELETE" });
+        await loadAppliedDashboard();
+      }
+      function formatApplicationDate(value) {
+        if (!value) return "Not set";
+        return new Date(value).toLocaleDateString();
+      }
+      function drawApplicationsChart(byDate) {
+        const canvas = $("applicationsChart");
+        const context = canvas.getContext("2d");
+        const entries = Object.entries(byDate || {});
+        const width = canvas.clientWidth || 700;
+        const height = 230;
+        const scale = window.devicePixelRatio || 1;
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        context.scale(scale, scale);
+        context.clearRect(0, 0, width, height);
+        if (!entries.length) {
+          context.fillStyle = "#6d776f";
+          context.font = "14px Arial";
+          context.fillText("No applications in this date range.", 12, 40);
+          return;
+        }
+        const max = Math.max(...entries.map((entry) => entry[1]), 1);
+        const left = 34;
+        const bottom = 34;
+        const chartWidth = width - left - 16;
+        const chartHeight = height - bottom - 18;
+        context.strokeStyle = "#ddd9cf";
+        context.beginPath();
+        context.moveTo(left, 12);
+        context.lineTo(left, height - bottom);
+        context.lineTo(width - 16, height - bottom);
+        context.stroke();
+        context.strokeStyle = "#1e6b4f";
+        context.fillStyle = "#1e6b4f";
+        context.lineWidth = 2;
+        context.beginPath();
+        entries.forEach(([date, count], index) => {
+          const x =
+            left +
+            (entries.length === 1
+              ? chartWidth / 2
+              : (index / (entries.length - 1)) * chartWidth);
+          const y = height - bottom - (count / max) * chartHeight;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+          context.fillRect(x - 3, y - 3, 6, 6);
+        });
+        context.stroke();
+        context.fillStyle = "#6d776f";
+        context.font = "11px Arial";
+        entries.forEach(([date, count], index) => {
+          const x =
+            left +
+            (entries.length === 1
+              ? chartWidth / 2
+              : (index / (entries.length - 1)) * chartWidth);
+          context.fillText(date.slice(5), Math.max(2, x - 15), height - 12);
+          context.fillText(
+            String(count),
+            x - 3,
+            Math.max(12, height - bottom - (count / max) * chartHeight - 10),
+          );
+        });
+      }
+      async function unsaveJob(button) {
+        button.disabled = true;
+        try {
+          await api(`/api/applications/${button.dataset.applicationId}`, {
+            method: "DELETE",
+          });
+          message("Role removed from your saved jobs.");
+          await loadApplications();
+          await loadDashboard();
+        } catch (error) {
+          message(error.message, true);
+          button.disabled = false;
+        }
+      }
+      rememberKeyword("");
+      rememberLocation("");
+      api("/api/cv").then((data) => {
+        if (data.cv) {
+          $("cvStatus").textContent =
+            `${data.cv.filename} loaded. Jobs are CV-rated.`;
+        }
+      });
+      showTab(initialTab, false);
     </script>
   </body>
 </html>

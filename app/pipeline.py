@@ -12,7 +12,19 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-from .adapters import wuzzuf, adzuna, jooble
+from .adapters import (
+    wuzzuf,
+    adzuna,
+    jooble,
+    usajobs,
+    remotive,
+    remoteok,
+    arbeitnow,
+    reed,
+    jsearch,
+    serpapi,
+    jobspipe,
+)
 from .scoring import score_and_annotate
 from .db import get_connection
 
@@ -20,6 +32,14 @@ SOURCES = {
     "wuzzuf": wuzzuf.fetch_jobs,
     "adzuna": adzuna.fetch_jobs,
     "jooble": jooble.fetch_jobs,
+    "usajobs": usajobs.fetch_jobs,
+    "remotive": remotive.fetch_jobs,
+    "remoteok": remoteok.fetch_jobs,
+    "arbeitnow": arbeitnow.fetch_jobs,
+    "reed": reed.fetch_jobs,
+    "jsearch": jsearch.fetch_jobs,
+    "serpapi": serpapi.fetch_jobs,
+    "jobspipe": jobspipe.fetch_jobs,
 }
 
 # Hard-disabled per project policy: no public job-search API exists for
@@ -31,6 +51,7 @@ def run_pipeline(
     db_path: str,
     query: str | None = None,
     location: str | None = None,
+    clear_existing: bool = False,
 ) -> dict:
     started_at = datetime.now(timezone.utc).isoformat()
     results: dict[str, dict] = {}
@@ -38,6 +59,7 @@ def run_pipeline(
     total_inserted = 0
 
     try:
+        cleared = _clear_untracked_jobs(conn) if clear_existing else 0
         for name, fetch_fn in SOURCES.items():
             try:
                 if query is None and location is None:
@@ -63,7 +85,20 @@ def run_pipeline(
     finally:
         conn.close()
 
-    return {"started_at": started_at, "results": results, "total_inserted": total_inserted}
+    return {
+        "started_at": started_at,
+        "results": results,
+        "total_inserted": total_inserted,
+        "total_cleared": cleared,
+    }
+
+
+def _clear_untracked_jobs(conn) -> int:
+    cursor = conn.execute(
+        "DELETE FROM jobs WHERE id NOT IN (SELECT DISTINCT job_id FROM applications)"
+    )
+    conn.commit()
+    return cursor.rowcount
 
 
 # Matches the NOT NULL DEFAULT values in CREATE_TABLE.sql. Adapters (like
