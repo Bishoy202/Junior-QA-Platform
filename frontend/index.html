@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout | Unified job search</title>
+    <style>
+      :root {
+        --ink: #17211b;
+        --muted: #6d776f;
+        --paper: #f4f1e9;
+        --panel: #fffdf8;
+        --line: #ddd9cf;
+        --green: #1e6b4f;
+        --mint: #dcefe4;
+        --orange: #e77b44;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      .shell {
+        min-height: 100vh;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        padding: 22px clamp(20px, 5vw, 72px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        background: var(--panel);
+      }
+      .brand {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        background: var(--green);
+        color: #fff;
+        border-radius: 50%;
+        font: 700 18px Georgia;
+      }
+      .brand strong {
+        font-size: 22px;
+      }
+      .brand small {
+        display: block;
+        color: var(--muted);
+        font:
+          12px Arial,
+          sans-serif;
+        margin-top: 2px;
+      }
+      nav {
+        display: flex;
+        gap: 20px;
+      }
+      nav button {
+        border: 0;
+        background: none;
+        color: var(--muted);
+        padding: 8px 0;
+        border-bottom: 2px solid transparent;
+        font:
+          600 13px Arial,
+          sans-serif;
+      }
+      nav button.active {
+        color: var(--green);
+        border-color: var(--green);
+      }
+      main {
+        max-width: 1280px;
+        margin: auto;
+        padding: clamp(30px, 5vw, 68px) clamp(20px, 5vw, 72px);
+      }
+      .hero {
+        max-width: 720px;
+        margin-bottom: 34px;
+      }
+      .eyebrow {
+        color: var(--orange);
+        font:
+          700 11px Arial,
+          sans-serif;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      h1 {
+        font-size: clamp(42px, 6vw, 72px);
+        line-height: 0.98;
+        font-weight: 400;
+        margin: 13px 0 18px;
+        letter-spacing: -0.02em;
+      }
+      .hero p {
+        color: var(--muted);
+        font:
+          16px/1.6 Arial,
+          sans-serif;
+        max-width: 580px;
+        margin: 0;
+      }
+      .searchbar {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        background: var(--green);
+        border-radius: 4px;
+        box-shadow: 0 10px 30px #1e6b4f20;
+        margin-top: 24px;
+      }
+      .searchbar input {
+        min-width: 0;
+        flex: 1;
+        border: 0;
+        padding: 15px 16px;
+        color: var(--ink);
+        background: #fff;
+        outline: 0;
+      }
+      .searchbar input:first-child {
+        flex: 1.3;
+      }
+      .searchbar button,
+      .primary {
+        border: 0;
+        background: var(--orange);
+        color: #fff;
+        padding: 0 22px;
+        font:
+          700 13px Arial,
+          sans-serif;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 38px 0 18px;
+      }
+      .toolbar h2 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 400;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .stat {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 18px;
+      }
+      .stat b {
+        display: block;
+        font-size: 29px;
+        font-weight: 400;
+      }
+      .stat span {
+        color: var(--muted);
+        font:
+          11px Arial,
+          sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .jobs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .job {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 22px;
+        min-height: 190px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .job-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .job h3 {
+        font-size: 21px;
+        line-height: 1.15;
+        font-weight: 400;
+        margin: 0 0 8px;
+      }
+      .meta {
+        color: var(--muted);
+        font:
+          12px Arial,
+          sans-serif;
+      }
+      .fit {
+        color: var(--green);
+        background: var(--mint);
+        padding: 6px 8px;
+        height: max-content;
+        font:
+          700 12px Arial,
+          sans-serif;
+        white-space: nowrap;
+      }
+      .job-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .job-foot a {
+        color: var(--green);
+        font:
+          700 12px Arial,
+          sans-serif;
+        text-decoration: none;
+      }
+      .save {
+        border: 1px solid var(--green);
+        color: var(--green);
+        background: transparent;
+        padding: 8px 11px;
+        font:
+          700 11px Arial,
+          sans-serif;
+      }
+      .save.saved {
+        background: var(--mint);
+      }
+      .empty,
+      .error {
+        padding: 34px;
+        background: var(--panel);
+        border: 1px dashed var(--line);
+        color: var(--muted);
+        font:
+          14px Arial,
+          sans-serif;
+      }
+      #status {
+        min-height: 20px;
+        color: var(--muted);
+        font:
+          12px Arial,
+          sans-serif;
+        margin-top: 16px;
+      }
+      .source-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 24px;
+      }
+      .source {
+        background: var(--mint);
+        color: var(--green);
+        padding: 7px 10px;
+        font:
+          700 11px Arial,
+          sans-serif;
+      }
+      .application {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 20px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      @media (max-width: 720px) {
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        nav {
+          order: 3;
+          width: 100%;
+          justify-content: space-between;
+        }
+        .searchbar {
+          flex-direction: column;
+        }
+        .searchbar button {
+          padding: 14px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .jobs {
+          grid-template-columns: 1fr;
+        }
+        .toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div class="brand">
+          <div class="mark">S</div>
+          <div>
+            <strong>Scout</strong><small>one search, every source</small>
+          </div>
+        </div>
+        <nav>
+          <button data-tab="dashboard" class="active">Overview</button
+          ><button data-tab="jobs">Job board</button
+          ><button data-tab="applications">Saved</button>
+        </nav>
+        <button class="primary" id="runPipeline">Refresh sources</button>
+      </header>
+      <main>
+        <section class="hero">
+          <div class="eyebrow">Your next move</div>
+          <h1>Find the work<br />worth your time.</h1>
+          <p>
+            Search one clean feed of roles from Wuzzuf, Adzuna, and Jooble.
+            Scout scores each listing so the strongest matches rise to the top.
+          </p>
+          <div class="searchbar">
+            <input
+              id="query"
+              placeholder="Role, skill, or company"
+              aria-label="Search jobs"
+            /><input
+              id="location"
+              placeholder="Location"
+              aria-label="Filter by location"
+            /><button id="search">Search jobs</button>
+          </div>
+          <div class="source-row" id="sources"></div>
+        </section>
+        <section id="dashboard"></section>
+        <section id="jobs" hidden></section>
+        <section id="applications" hidden></section>
+        <div id="status"></div>
+      </main>
+    </div>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const api = async (path, options) => {
+        const response = await fetch(path, options);
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.detail || "Request failed");
+        return body;
+      };
+      const message = (text, error = false) => {
+        $("status").textContent = text;
+        $("status").style.color = error ? "#b44235" : "";
+      };
+      function showTab(tab) {
+        ["dashboard", "jobs", "applications"].forEach(
+          (id) => ($(id).hidden = id !== tab),
+        );
+        document
+          .querySelectorAll("nav button")
+          .forEach((button) =>
+            button.classList.toggle("active", button.dataset.tab === tab),
+          );
+        if (tab === "dashboard") loadDashboard();
+        if (tab === "jobs") loadJobs();
+        if (tab === "applications") loadApplications();
+      }
+      document
+        .querySelectorAll("nav button")
+        .forEach(
+          (button) => (button.onclick = () => showTab(button.dataset.tab)),
+        );
+      $("search").onclick = () => {
+        showTab("jobs");
+        loadJobs();
+      };
+      [$("query"), $("location")].forEach(
+        (input) =>
+          (input.onkeydown = (event) => {
+            if (event.key === "Enter") {
+              showTab("jobs");
+              loadJobs();
+            }
+          }),
+      );
+      $("runPipeline").onclick = async () => {
+        message("Refreshing job sources...");
+        try {
+          const result = await api("/api/pipeline/run", { method: "POST" });
+          message(`Updated ${result.total_inserted} new listings.`);
+          loadDashboard();
+        } catch (error) {
+          message(error.message, true);
+        }
+      };
+      function escapeHtml(value) {
+        return String(value || "").replace(
+          /[&<>"']/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#039;",
+            })[char],
+        );
+      }
+      function jobCard(job, savedIds) {
+        const saved = savedIds.has(job.id);
+        return `<article class="job"><div class="job-top"><div><h3>${escapeHtml(job.title)}</h3><div class="meta">${escapeHtml(job.company)} · ${escapeHtml(job.area || "Location not listed")} · ${escapeHtml(job.source)}</div></div><span class="fit">${Math.round(job.fit_score * 100)}% fit</span></div><div class="job-foot"><a href="${escapeHtml(job.url)}" target="_blank" rel="noopener">View listing ↗</a><button class="save ${saved ? "saved" : ""}" data-job-id="${job.id}">${saved ? "Saved" : "Save role"}</button></div></article>`;
+      }
+      async function savedIds() {
+        const data = await api("/api/applications");
+        return new Set(data.applications.map((item) => item.job_id));
+      }
+      async function loadJobs() {
+        try {
+          const params = new URLSearchParams({ limit: "100" });
+          if ($("query").value.trim()) params.set("q", $("query").value.trim());
+          if ($("location").value.trim())
+            params.set("location", $("location").value.trim());
+          const [data, ids] = await Promise.all([
+            api("/api/jobs?" + params),
+            savedIds(),
+          ]);
+          $("jobs").innerHTML =
+            `<div class="toolbar"><h2>Open roles <span class="meta">${data.count} found</span></h2></div><div class="jobs">${data.jobs.map((job) => jobCard(job, ids)).join("") || '<div class="empty">No roles match that search yet. Try a broader title or location.</div>'}</div>`;
+          document
+            .querySelectorAll(".save")
+            .forEach((button) => (button.onclick = () => saveJob(button)));
+        } catch (error) {
+          $("jobs").innerHTML =
+            `<div class="error">${escapeHtml(error.message)}</div>`;
+        }
+      }
+      async function saveJob(button) {
+        button.disabled = true;
+        try {
+          await api(`/api/applications?job_id=${button.dataset.jobId}`, {
+            method: "POST",
+          });
+          button.textContent = "Saved";
+          button.classList.add("saved");
+          message("Role saved to your shortlist.");
+        } catch (error) {
+          message(error.message, true);
+        } finally {
+          button.disabled = false;
+        }
+      }
+      async function loadDashboard() {
+        try {
+          const [data, sourceData] = await Promise.all([
+            api("/api/dashboard"),
+            api("/api/sources"),
+          ]);
+          $("dashboard").innerHTML =
+            `<div class="stats"><div class="stat"><b>${data.total_jobs}</b><span>Total listings</span></div><div class="stat"><b>${data.high_fit_jobs}</b><span>Strong matches</span></div><div class="stat"><b>${Object.keys(data.by_source).length}</b><span>Active sources</span></div><div class="stat"><b>${data.last_pipeline_run ? "Ready" : "—"}</b><span>Pipeline status</span></div></div><div class="toolbar"><h2>Fresh from the network</h2><button class="save" id="browse">Browse all roles</button></div>`;
+          $("sources").innerHTML = sourceData.enabled
+            .map((source) => `<span class="source">● ${source}</span>`)
+            .join("");
+          $("browse").onclick = () => showTab("jobs");
+        } catch (error) {
+          message(error.message, true);
+        }
+      }
+      async function loadApplications() {
+        try {
+          const data = await api("/api/applications");
+          $("applications").innerHTML =
+            `<div class="toolbar"><h2>Your shortlist</h2></div>${data.applications.map((item) => `<div class="application"><div><h3>${escapeHtml(item.title)}</h3><div class="meta">${escapeHtml(item.company)} · ${escapeHtml(item.status)}</div></div><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Open ↗</a></div>`).join("") || '<div class="empty">Save a role from the job board and it will appear here.</div>'}`;
+        } catch (error) {
+          message(error.message, true);
+        }
+      }
+      loadDashboard();
+    </script>
+  </body>
+</html>

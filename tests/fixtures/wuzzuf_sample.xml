@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Wuzzuf All Jobs</title>
+  <item>
+    <title>Junior QA Engineer</title>
+    <link>https://wuzzuf.net/jobs/p/aaa111-junior-qa-engineer</link>
+    <guid>https://wuzzuf.net/jobs/p/aaa111-junior-qa-engineer</guid>
+    <description>Looking for a junior QA engineer with 0-1 years experience in manual testing.</description>
+    <pubDate>Mon, 01 Sep 2026 10:00:00 GMT</pubDate>
+    <source url="https://example-corp.com">Example Corp</source>
+    <experience>0-1 years</experience>
+    <career_level>Entry Level</career_level>
+    <job_type>Full Time</job_type>
+    <area>Cairo, Egypt</area>
+    <roles>IT/Software Development</roles>
+  </item>
+  <item>
+    <title>Senior QA Lead</title>
+    <link>https://wuzzuf.net/jobs/p/bbb222-senior-qa-lead</link>
+    <guid>https://wuzzuf.net/jobs/p/bbb222-senior-qa-lead</guid>
+    <description>Senior QA lead with 8+ years experience managing a testing team.</description>
+    <pubDate>Mon, 01 Sep 2026 09:00:00 GMT</pubDate>
+    <source url="https://bigco.com">BigCo</source>
+    <experience>8+ years</experience>
+    <career_level>Senior</career_level>
+    <job_type>Full Time</job_type>
+    <area>Giza, Egypt</area>
+    <roles>IT/Software Development</roles>
+  </item>
+  <item>
+    <title>Marketing Specialist</title>
+    <link>https://wuzzuf.net/jobs/p/ccc333-marketing-specialist</link>
+    <guid>https://wuzzuf.net/jobs/p/ccc333-marketing-specialist</guid>
+    <description>Marketing role, no testing involved.</description>
+    <pubDate>Mon, 01 Sep 2026 08:00:00 GMT</pubDate>
+    <source url="https://brandco.com">BrandCo</source>
+    <experience> years</experience>
+    <career_level>Mid Level</career_level>
+    <job_type>Full Time</job_type>
+    <area>Cairo, Egypt</area>
+    <roles>Marketing</roles>
+  </item>
+</channel>
+</rss>
