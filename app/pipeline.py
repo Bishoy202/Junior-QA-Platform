@@ -55,6 +55,7 @@ def run_pipeline(
 ) -> dict:
     started_at = datetime.now(timezone.utc).isoformat()
     results: dict[str, dict] = {}
+    all_jobs: list[dict] = []
     conn = get_connection(db_path)
     total_inserted = 0
 
@@ -66,6 +67,7 @@ def run_pipeline(
                     raw_jobs = fetch_fn()
                 else:
                     raw_jobs = fetch_fn(query=query, location=location)
+                all_jobs.extend(raw_jobs)
                 inserted = _insert_jobs(conn, raw_jobs)
                 results[name] = {"status": "ok", "fetched": len(raw_jobs), "inserted": inserted}
                 total_inserted += inserted
@@ -89,6 +91,7 @@ def run_pipeline(
         "started_at": started_at,
         "results": results,
         "total_inserted": total_inserted,
+        "total_fetched": len(all_jobs),
         "total_cleared": cleared,
     }
 

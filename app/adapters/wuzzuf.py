@@ -7,12 +7,17 @@ don't regress behavior that was already verified.
 """
 from __future__ import annotations
 
+import logging
+
 from . import wuzzuf_collector
-from ..locations import location_matches
+from ..locations import job_matches_location
 
 
 class WuzzufError(RuntimeError):
     pass
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def fetch_jobs(query: str | None = None, location: str | None = None) -> list[dict]:
@@ -35,9 +40,10 @@ def fetch_jobs(query: str | None = None, location: str | None = None) -> list[di
                 for field in ("title", "company", "description", "category", "job_requirements")
             ).lower()
             return all(term in searchable for term in query_terms) and (
-                location_matches(job.get("area"), wanted_location)
+                job_matches_location(job, wanted_location)
             )
 
         return [job for job in jobs if matches(job)]
     except Exception as exc:  # network, XML parse, etc.
-        raise WuzzufError(f"wuzzuf_fetch_failed: {exc}") from exc
+        LOGGER.exception("Wuzzuf adapter failed: %s", exc)
+        return []

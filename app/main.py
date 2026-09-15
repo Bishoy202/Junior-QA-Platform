@@ -25,7 +25,7 @@ from .db import init_db, get_connection
 from .pipeline import run_pipeline, SOURCES, DISABLED_SOURCES
 from .scoring import score_job_against_cv
 from .search import JOB_TERMS, LOCATION_TERMS, correct_search_text
-from .locations import location_matches
+from .locations import job_matches_location
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "data" / "jobs.db"))
@@ -83,9 +83,6 @@ def list_jobs(
             where.append("(title LIKE ? OR company LIKE ? OR description LIKE ? OR category LIKE ?)")
             search = f"%{q.strip()}%"
             params.extend([search] * 4)
-        if location:
-            where.append("area LIKE ?")
-            params.append(f"%{location.strip()}%")
         query = (
             f"SELECT * FROM jobs WHERE {' AND '.join(where)} "
             f"ORDER BY fit_score DESC, posted_at DESC LIMIT ? OFFSET ?"
@@ -95,7 +92,7 @@ def list_jobs(
         cv = conn.execute("SELECT cv_text FROM cv_profiles WHERE id = 1").fetchone()
         jobs = [dict(row) for row in rows]
         if location:
-            jobs = [job for job in jobs if location_matches(job.get("area"), location)]
+            jobs = [job for job in jobs if job_matches_location(job, location)]
         if cv:
             jobs = [score_job_against_cv(job, cv["cv_text"]) for job in jobs]
             jobs.sort(key=lambda job: job["fit_score"], reverse=True)

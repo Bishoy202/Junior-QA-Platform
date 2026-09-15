@@ -1,4 +1,7 @@
 from pathlib import Path
+from unittest.mock import patch
+
+import requests
 
 from app.adapters import wuzzuf_collector
 
@@ -37,3 +40,30 @@ def test_fetch_jobs_matches_cairo_location_variants(monkeypatch):
     from app.adapters import wuzzuf
     monkeypatch.setattr(wuzzuf_collector, "collect", lambda: jobs)
     assert len(wuzzuf.fetch_jobs(query="qa", location="Cairo")) == 1
+
+
+def test_fetch_jobs_matches_cairo_when_area_is_missing(monkeypatch):
+    monkeypatch.setattr(wuzzuf_collector, "collect", lambda: [
+        {"title": "QA Engineer Cairo", "company": "Example", "description": "Testing", "area": None, "category": "IT", "job_requirements": "", "url": "https://example.com/cairo-qa"},
+    ])
+
+    from app.adapters import wuzzuf
+    assert len(wuzzuf.fetch_jobs(query="qa", location="Cairo")) == 1
+
+
+def test_collect_logs_and_returns_empty_list_on_request_failure():
+    with patch(
+        "requests.get",
+        side_effect=requests.RequestException("blocked by network"),
+    ):
+        assert wuzzuf_collector.collect() == []
+
+
+def test_fetch_response_uses_diagnostic_headers(monkeypatch):
+    response = type("Response", (), {"status_code": 200})()
+    with patch("requests.get", return_value=response) as request:
+        wuzzuf_collector.fetch_response()
+
+    headers = request.call_args.kwargs["headers"]
+    assert headers["User-Agent"]
+    assert "application/rss+xml" in headers["Accept"]

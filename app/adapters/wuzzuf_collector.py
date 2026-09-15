@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import html
+import logging
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, asdict
@@ -34,6 +35,7 @@ FEED_URL = "https://wuzzuf.net/feeds/all-jobs.xml"
 SOURCE_NAME = "wuzzuf"
 REQUEST_TIMEOUT = 15  # seconds
 USER_AGENT = "JuniorQAJobPlatform/1.0 (+personal job tracker)"
+LOGGER = logging.getLogger(__name__)
 
 _HAS_DIGIT = re.compile(r"\d")
 
@@ -115,13 +117,18 @@ def _parse_pubdate(raw: Optional[str]) -> Optional[str]:
         return None
 
 
-def fetch_raw_feed(timeout: int = REQUEST_TIMEOUT) -> bytes:
-    """Fetch the raw feed bytes. Raises requests.RequestException on failure."""
+def fetch_response(timeout: int = REQUEST_TIMEOUT):
+    """Fetch the raw Wuzzuf response for diagnostics and parsing."""
     headers = {
         "User-Agent": USER_AGENT,
-        "Accept": "application/rss+xml, application/xml, text/xml",
+        "Accept": "application/rss+xml, application/xml, text/xml, */*",
     }
-    response = requests.get(FEED_URL, headers=headers, timeout=timeout)
+    return requests.get(FEED_URL, headers=headers, timeout=timeout)
+
+
+def fetch_raw_feed(timeout: int = REQUEST_TIMEOUT) -> bytes:
+    """Fetch and validate the raw feed bytes."""
+    response = fetch_response(timeout=timeout)
     response.raise_for_status()
     return response.content
 
@@ -175,8 +182,12 @@ def parse_feed(raw_xml: bytes) -> list[WuzzufJob]:
 
 def collect() -> list[dict]:
     """Fetch + parse in one call. Returns a list of plain dicts."""
-    raw = fetch_raw_feed()
-    return [job.as_dict() for job in parse_feed(raw)]
+    try:
+        raw = fetch_raw_feed()
+        return [job.as_dict() for job in parse_feed(raw)]
+    except (requests.RequestException, ET.ParseError, ValueError) as exc:
+        LOGGER.exception("Wuzzuf/Egypt feed failed: %s", exc)
+        return []
 
 
 if __name__ == "__main__":

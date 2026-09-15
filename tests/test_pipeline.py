@@ -102,6 +102,27 @@ def test_pipeline_passes_live_search_terms_to_sources(temp_db, monkeypatch):
     assert calls == [("manual tester", "Cairo")] * len(pipeline.SOURCES)
 
 
+def test_pipeline_aggregates_jobs_from_all_sources(temp_db, monkeypatch):
+    from app.adapters.base import normalize
+
+    def source_one(query=None, location=None):
+        return [normalize(source="one", url="https://example.com/one", title="One", company="A")]
+
+    def source_two(query=None, location=None):
+        return [normalize(source="two", url="https://example.com/two", title="Two", company="B")]
+
+    for source_name in pipeline.SOURCES:
+        monkeypatch.setitem(pipeline.SOURCES, source_name, lambda: [])
+    monkeypatch.setitem(pipeline.SOURCES, "wuzzuf", source_one)
+    monkeypatch.setitem(pipeline.SOURCES, "remotive", source_two)
+
+    result = pipeline.run_pipeline(temp_db)
+
+    assert result["total_fetched"] == 2
+    assert result["results"]["wuzzuf"]["inserted"] == 1
+    assert result["results"]["remotive"]["inserted"] == 1
+
+
 def test_refresh_clears_untracked_jobs_but_preserves_saved_jobs(temp_db, monkeypatch):
     conn = get_connection(temp_db)
     for external_id in ("old-1", "old-2"):

@@ -33,3 +33,11 @@ def location_matches(job_location: str | None, requested_location: str | None) -
     requested_words = set(requested.split())
     actual_words = set(actual.split())
     return bool(requested_words) and requested_words.issubset(actual_words)
+
+
+def job_matches_location(job: dict, requested_location: str | None) -> bool:
+    searchable = " ".join(
+        str(job.get(field) or "")
+        for field in ("area", "title", "company", "description", "category", "job_requirements", "url")
+    )
+    return location_matches(searchable, requested_location)
