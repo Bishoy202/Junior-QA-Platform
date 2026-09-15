@@ -45,6 +45,33 @@ def test_startup_ingestion_failure_does_not_escape(tmp_path, monkeypatch):
     asyncio.run(main_module.run_startup_ingestion())
 
 
+def test_startup_ingestion_skips_populated_database(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "startup_populated_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+    monkeypatch.setenv("AUTO_INGEST_ON_STARTUP", "true")
+
+    import app.main as main_module
+    importlib.reload(main_module)
+    conn = main_module.get_connection(db_path)
+    conn.execute(
+        "INSERT INTO jobs (source, external_id, url, title, company, description, collected_at, fit_score, fit_reasons, extra_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        ("wuzzuf", "startup-job", "https://example.com/startup", "Existing job", "Company", "Role", "2024-01-01T00:00:00Z", 0.5, "[]", "{}"),
+    )
+    conn.commit()
+    conn.close()
+
+    called = False
+
+    def unexpected_pipeline(*args, **kwargs):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(main_module, "run_pipeline", unexpected_pipeline)
+    asyncio.run(main_module.run_startup_ingestion())
+
+    assert called is False
+
+
 def test_jobs_can_be_filtered_by_source(tmp_path, monkeypatch):
     db_path = str(tmp_path / "source_filter_test.db")
     monkeypatch.setenv("DB_PATH", db_path)

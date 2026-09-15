@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .db import init_db, get_connection, log_db_status, resolve_db_path
+from .db import get_jobs_count, init_db, get_connection, log_db_status, resolve_db_path
 from .pipeline import run_pipeline, SOURCES, DISABLED_SOURCES
 from .scoring import score_job_against_cv
 from .search import JOB_TERMS, LOCATION_TERMS, correct_search_text
@@ -37,17 +37,33 @@ DB_PATH = resolve_db_path()
 FRONTEND_DIR = BASE_DIR / "frontend"
 
 async def run_startup_ingestion() -> None:
-    """Populate the database in the background without blocking startup."""
+    """Populate an empty database without allowing failures to stop startup."""
     if os.getenv("AUTO_INGEST_ON_STARTUP", "true").lower() not in {"1", "true", "yes", "on"}:
         LOGGER.info("startup ingestion disabled by AUTO_INGEST_ON_STARTUP")
         return
     try:
+        current_jobs = get_jobs_count(DB_PATH)
+        LOGGER.info(
+            "startup database check: sqlite_path=%s jobs_row_count=%s",
+            str(Path(DB_PATH).resolve()),
+            current_jobs,
+        )
+        if current_jobs > 0:
+            LOGGER.info("startup ingestion skipped: database already contains jobs")
+            return
         result = await asyncio.to_thread(run_pipeline, DB_PATH, clear_existing=False)
         LOGGER.info(
             "startup ingestion finished: fetched=%s inserted=%s",
             result.get("total_fetched", 0),
             result.get("total_inserted", 0),
         )
+        for source, source_result in result.get("results", {}).items():
+            if source_result.get("status") == "error":
+                LOGGER.error(
+                    "startup ingestion source failed: source=%s error=%s",
+                    source,
+                    source_result.get("error", "unknown error"),
+                )
     except Exception:
         LOGGER.exception("startup ingestion failed; server will continue serving")
 

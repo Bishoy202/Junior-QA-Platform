@@ -118,9 +118,17 @@ def init_db(db_path: str) -> None:
 
 
 def log_db_status(db_path: str) -> None:
+    jobs = get_jobs_count(db_path)
+    LOGGER.info(
+        "database startup status: sqlite_path=%s jobs_row_count=%s",
+        str(Path(db_path).resolve()),
+        jobs,
+    )
+
+
+def get_jobs_count(db_path: str) -> int:
     conn = get_connection(db_path)
     try:
-        jobs = conn.execute("SELECT COUNT(*) AS count FROM jobs").fetchone()["count"]
-        LOGGER.info("database target=%s backend=sqlite jobs=%s", db_path, jobs)
+        return int(conn.execute("SELECT COUNT(*) AS count FROM jobs").fetchone()["count"])
     finally:
         conn.close()
