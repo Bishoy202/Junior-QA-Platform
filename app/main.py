@@ -11,7 +11,9 @@ import os
 import json
 import io
 import logging
+import asyncio
 import zipfile
+from contextlib import asynccontextmanager
 from xml.etree import ElementTree
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,7 +36,35 @@ LOGGER = logging.getLogger(__name__)
 DB_PATH = resolve_db_path()
 FRONTEND_DIR = BASE_DIR / "frontend"
 
-app = FastAPI(title="Junior QA Job Platform")
+async def run_startup_ingestion() -> None:
+    """Populate the database in the background without blocking startup."""
+    if os.getenv("AUTO_INGEST_ON_STARTUP", "true").lower() not in {"1", "true", "yes", "on"}:
+        LOGGER.info("startup ingestion disabled by AUTO_INGEST_ON_STARTUP")
+        return
+    try:
+        result = await asyncio.to_thread(run_pipeline, DB_PATH, clear_existing=False)
+        LOGGER.info(
+            "startup ingestion finished: fetched=%s inserted=%s",
+            result.get("total_fetched", 0),
+            result.get("total_inserted", 0),
+        )
+    except Exception:
+        LOGGER.exception("startup ingestion failed; server will continue serving")
+
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    ingestion_task = asyncio.create_task(run_startup_ingestion())
+    application.state.startup_ingestion_task = ingestion_task
+    try:
+        yield
+    finally:
+        if not ingestion_task.done():
+            ingestion_task.cancel()
+            await asyncio.gather(ingestion_task, return_exceptions=True)
+
+
+app = FastAPI(title="Junior QA Job Platform", lifespan=lifespan)
 
 # Defensive: if someone opens frontend/index.html directly as a file://
 # URL instead of navigating to this server, its fetch() calls arrive from

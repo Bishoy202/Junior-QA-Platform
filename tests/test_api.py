@@ -1,5 +1,6 @@
 import os
 import importlib
+import asyncio
 
 
 def test_health_and_sources(tmp_path, monkeypatch):
@@ -27,6 +28,21 @@ def test_health_and_sources(tmp_path, monkeypatch):
     r = client.get("/api/jobs")
     assert r.status_code == 200
     assert r.json()["jobs"] == []  # empty DB, no fabricated rows
+
+
+def test_startup_ingestion_failure_does_not_escape(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "startup_failure_test.db")
+    monkeypatch.setenv("DB_PATH", db_path)
+    monkeypatch.setenv("AUTO_INGEST_ON_STARTUP", "true")
+
+    import app.main as main_module
+    importlib.reload(main_module)
+
+    def failing_pipeline(*args, **kwargs):
+        raise RuntimeError("adapter unavailable")
+
+    monkeypatch.setattr(main_module, "run_pipeline", failing_pipeline)
+    asyncio.run(main_module.run_startup_ingestion())
 
 
 def test_jobs_can_be_filtered_by_source(tmp_path, monkeypatch):
