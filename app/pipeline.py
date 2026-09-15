@@ -27,7 +27,11 @@ SOURCES = {
 DISABLED_SOURCES = ["linkedin", "indeed", "glassdoor"]
 
 
-def run_pipeline(db_path: str) -> dict:
+def run_pipeline(
+    db_path: str,
+    query: str | None = None,
+    location: str | None = None,
+) -> dict:
     started_at = datetime.now(timezone.utc).isoformat()
     results: dict[str, dict] = {}
     conn = get_connection(db_path)
@@ -36,7 +40,10 @@ def run_pipeline(db_path: str) -> dict:
     try:
         for name, fetch_fn in SOURCES.items():
             try:
-                raw_jobs = fetch_fn()
+                if query is None and location is None:
+                    raw_jobs = fetch_fn()
+                else:
+                    raw_jobs = fetch_fn(query=query, location=location)
                 inserted = _insert_jobs(conn, raw_jobs)
                 results[name] = {"status": "ok", "fetched": len(raw_jobs), "inserted": inserted}
                 total_inserted += inserted

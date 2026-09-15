@@ -118,6 +118,16 @@ def trigger_pipeline():
     return result
 
 
+@app.post("/api/search")
+def search_jobs(
+    q: str = Query(..., min_length=2, max_length=120),
+    location: str | None = Query(None, max_length=120),
+):
+    """Fetch fresh results from every configured source for this search."""
+    result = run_pipeline(DB_PATH, query=q.strip(), location=location.strip() if location else None)
+    return {"query": q.strip(), "location": location, **result}
+
+
 @app.get("/api/pipeline/status")
 def pipeline_status():
     conn = get_connection(DB_PATH)

@@ -399,14 +399,14 @@
         );
       $("search").onclick = () => {
         showTab("jobs");
-        loadJobs();
+        searchLive();
       };
       [$("query"), $("location")].forEach(
         (input) =>
           (input.onkeydown = (event) => {
             if (event.key === "Enter") {
               showTab("jobs");
-              loadJobs();
+              searchLive();
             }
           }),
       );
@@ -420,6 +420,27 @@
           message(error.message, true);
         }
       };
+      async function searchLive() {
+        const query = $("query").value.trim();
+        const location = $("location").value.trim();
+        if (query.length < 2) {
+          message("Enter at least two characters to search.", true);
+          return;
+        }
+        message("Searching connected job sources...");
+        try {
+          const params = new URLSearchParams({ q: query });
+          if (location) params.set("location", location);
+          const result = await api("/api/search?" + params, { method: "POST" });
+          message(
+            `Found ${result.results ? Object.values(result.results).filter((item) => item.status === "ok").length : 0} source responses. Showing fresh matches.`,
+          );
+          await loadJobs();
+        } catch (error) {
+          message(error.message, true);
+          await loadJobs();
+        }
+      }
       function escapeHtml(value) {
         return String(value || "").replace(
           /[&<>"']/g,

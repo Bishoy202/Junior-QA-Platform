@@ -68,3 +68,19 @@ def test_one_source_failure_does_not_block_others(temp_db, monkeypatch):
     assert result["results"]["wuzzuf"]["status"] == "error"
     assert result["results"]["jooble"]["status"] == "ok"
     assert result["results"]["jooble"]["inserted"] == 3
+
+
+def test_pipeline_passes_live_search_terms_to_sources(temp_db, monkeypatch):
+    calls = []
+
+    def fake_source(query=None, location=None):
+        calls.append((query, location))
+        return []
+
+    monkeypatch.setitem(pipeline.SOURCES, "wuzzuf", fake_source)
+    monkeypatch.setitem(pipeline.SOURCES, "adzuna", fake_source)
+    monkeypatch.setitem(pipeline.SOURCES, "jooble", fake_source)
+
+    pipeline.run_pipeline(temp_db, query="manual tester", location="Cairo")
+
+    assert calls == [("manual tester", "Cairo")] * 3
