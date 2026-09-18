@@ -627,8 +627,9 @@
     <script>
       const $ = (id) => document.getElementById(id);
       // Standalone template fallback. Replace this array with:
-      // fetch('/api/v1/jobs/applied').then(response => response.json())
-      // when using the production FastAPI applied-jobs endpoint.
+      fetch("http://127.0.0.1:8000/api/v1/jobs/applied").then((response) =>
+        response.json(),
+      ); // when using the production FastAPI applied-jobs endpoint.
       const APPLIED_JOBS_MOCK = [
         {
           id: "mock-1",
@@ -728,7 +729,7 @@
       let statusChart;
       let historyChart;
       const api = async (path, options) => {
-        const response = await fetch(path, options);
+        const response = await fetch(`http://127.0.0.1:8000${path}`, options);
         const body = await response.json();
         if (!response.ok) throw new Error(body.detail || "Request failed");
         return body;
