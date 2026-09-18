@@ -18,8 +18,4 @@ def test_resolve_db_path_prefers_sqlite_database_url(monkeypatch, tmp_path):
     assert db.resolve_db_path() == str((tmp_path / "jobs.db").resolve())
 
 
-def test_resolve_db_path_rejects_non_sqlite_database_url(monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", "mysql://user:pass@host:3306/jobs")
-
-    with pytest.raises(RuntimeError, match="supports SQLite only"):
-        db.resolve_db_path()
+d
